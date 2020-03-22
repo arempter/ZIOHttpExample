@@ -13,8 +13,8 @@ object Logging {
 
   val consoleLogger: ZLayer[Console, Nothing, Logging] = ZLayer.fromFunction { console =>
     new Service {
-      override def info(msg: String): UIO[Unit] = console.get.putStr(s"INFO: $msg")
-      override def error(msg: String): UIO[Unit] = console.get.putStr(s"DEBUG: $msg")
+      override def info(msg: String): UIO[Unit] = console.get.putStrLn(s"INFO: $msg")
+      override def error(msg: String): UIO[Unit] = console.get.putStrLn(s"DEBUG: $msg")
     }
   }
 

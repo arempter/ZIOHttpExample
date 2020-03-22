@@ -7,12 +7,12 @@ import akka.http.scaladsl.server.{RequestContext, Route, RouteResult}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import test.zio.domain.HttpClient.executeRequest
+import test.zio.domain.Logging.Logging
 import zio._
-import zio.console.Console
 
 import scala.concurrent.Future
 
-class UserRoutes(runtime: Runtime[Has[ActorSystem] with clock.Clock with Console])(implicit as: ActorSystem, materializer: ActorMaterializer) {
+class UserRoutes(runtime: Runtime[clock.Clock with Logging with Has[ActorSystem]])(implicit as: ActorSystem, materializer: ActorMaterializer) {
 
   private val request = HttpRequest(HttpMethods.GET, uri = "http://localhost:8081/status")
   private val slowRequest = HttpRequest(HttpMethods.GET, uri = "http://localhost:8081/slow")
@@ -32,5 +32,4 @@ class UserRoutes(runtime: Runtime[Has[ActorSystem] with clock.Clock with Console
         makeResponse(slowRequest)
       }
     }
-
 }
