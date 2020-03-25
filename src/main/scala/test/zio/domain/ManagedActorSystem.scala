@@ -3,7 +3,7 @@ package test.zio.domain
 import akka.actor.ActorSystem
 import zio.{Has, Managed, Task, ZLayer}
 
-object ManagedSystem {
+object ManagedActorSystem {
 
 //  private def terminateTask(sys: ActorSystem) = Task.fromFuture { _ =>
 //    sys.terminate()
