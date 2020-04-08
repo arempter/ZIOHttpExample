@@ -2,22 +2,30 @@ package test.zio
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.ActorMaterializer
-import test.zio.common.Dependencies.programDependencies
+import test.zio.common.Dependencies.{ programDependencies, runtime }
+import test.zio.domain.HttpClient
 import test.zio.domain.model.AkkaDependencies
-import test.zio.routes.UserRoutes
+import test.zio.routes.ApiRoutes
 import zio.console.Console
 import zio.{Has, Task, ZIO, _}
 
 import scala.concurrent.Future
 
-object HttpServer extends App {
+object HttpServer extends App with ApiRoutes {
 
   val bindTask: AkkaDependencies => Task[Future[Http.ServerBinding]] = { akkaDep =>
     implicit val sys: ActorSystem = akkaDep.system
     implicit val mat: ActorMaterializer = akkaDep.mat
-    Task(Http().bindAndHandle(new UserRoutes().getPaths, "localhost", 8080))
+    Task(Http().bindAndHandle(getPaths, "localhost", 8080))
   }
+
+  // check if can be reduced
+  val programDeps = programDependencies >>> HttpClient.httpClientImpl
+
+  override protected def executeRequestF(request: HttpRequest): HttpResponse =
+    runtime.unsafeRun(HttpClient.executeRequest(request).provideLayer(programDeps))
 
   val program: ZIO[Console, Throwable, Future[Http.ServerBinding]] =
     (for {
