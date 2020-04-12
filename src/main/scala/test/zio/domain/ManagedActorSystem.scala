@@ -1,7 +1,7 @@
 package test.zio.domain
 
 import akka.actor.ActorSystem
-import zio.{Has, Managed, Task, ZLayer, console}
+import zio.{Has, Managed, Task, ZLayer}
 
 object ManagedActorSystem {
 
