@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Route
 
 trait ApiRoutes {
 
-  protected def executeRequestF(request: HttpRequest): HttpResponse
+  protected def runRequest(request: HttpRequest): HttpResponse
 
   private val request = HttpRequest(HttpMethods.GET, uri = "http://localhost:8081/status")
   private val slowRequest = HttpRequest(HttpMethods.GET, uri = "http://localhost:8081/slow")
@@ -15,13 +15,13 @@ trait ApiRoutes {
     get {
       path("zio") {
         extractRequest { req =>
-          complete(executeRequestF(request))
+          complete(runRequest(request))
         }
       }
     } ~ get {
       path("slow") {
         extractRequest { req =>
-          complete(executeRequestF(slowRequest))
+          complete(runRequest(slowRequest))
         }
       }
     }
