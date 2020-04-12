@@ -5,7 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.ActorMaterializer
 import test.zio.domain.model.AkkaDependencies
-import test.zio.domain.{HttpClient, ManagedActorSystem, ProgramEnvLive}
+import test.zio.domain.{HttpClient, ProgramEnvLive}
 import test.zio.routes.ApiRoutes
 import zio.internal.Platform
 import zio.{Task, ZIO, _}
@@ -16,8 +16,6 @@ object HttpServer extends App with ApiRoutes {
 
   private val runtime = Runtime(ProgramEnvLive, Platform.default)
 
-  private val httpClientDependencies = HttpClient.live
-
   private val bindTask: AkkaDependencies => Task[Future[Http.ServerBinding]] = { akkaDep =>
     implicit val sys: ActorSystem = akkaDep.system
     implicit val mat: ActorMaterializer = akkaDep.mat
@@ -26,15 +24,16 @@ object HttpServer extends App with ApiRoutes {
 
   override protected def runRequest(request: HttpRequest): HttpResponse = {
     runtime.unsafeRun(
-      HttpClient.executeRequest(request).provideLayer(httpClientDependencies)
+      HttpClient.executeRequest(request).provideLayer(HttpClient.live)
     )
   }
 
   val program: ZIO[ZEnv, Throwable, Future[Http.ServerBinding]] =
     (for {
-        system <- ZIO.access[Has[ActorSystem]](_.get)
-        b <- bindTask(AkkaDependencies(system))
-      } yield b).provideLayer(ManagedActorSystem.system)
+      systemT <- ZIO.access[ProgramEnvLive](_.dependencies.getSystem)
+      b <- systemT.flatMap(s=> bindTask(AkkaDependencies(s)))
+     } yield b
+    ).provide(ProgramEnvLive)
 
   override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] =
     program.foldM(

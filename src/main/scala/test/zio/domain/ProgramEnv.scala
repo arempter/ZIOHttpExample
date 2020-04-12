@@ -15,6 +15,7 @@ object ProgramEnv {
 }
 
 trait ProgramEnvLive extends ProgramEnv {
+  // once instance, but not description. If wrapped in task will be evaluated each time (call by name)
   private val system = ActorSystem("ZIO"+System.currentTimeMillis())
 
   val dependencies = new Service {

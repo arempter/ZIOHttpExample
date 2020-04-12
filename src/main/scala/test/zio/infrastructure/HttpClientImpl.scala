@@ -26,7 +26,7 @@ case class HttpClientImpl() extends HttpClient.Service {
             .catchAll(e => IO.succeed(HttpResponse(entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, s"To many tries, $e \n")))
           )
         } yield r
-        ).provideLayer(clock.Clock.live ++ (console.Console.live >>>Logging.live))
+        ).provideLayer(clock.Clock.live ++ (console.Console.live >>> Logging.live)) // add dependencies locally
   }
 
   def executeRequest(request: HttpRequest): ZIO[ProgramEnv, Throwable, HttpResponse] =

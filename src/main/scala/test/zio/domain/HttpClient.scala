@@ -12,9 +12,7 @@ object HttpClient {
   }
 
   def executeRequest(request: HttpRequest): ZIO[HttpClient, Throwable, HttpResponse] =
-    ZIO.accessM(_.get.executeRequest(request).provide(ProgramEnvLive))
+    ZIO.accessM(_.get.executeRequest(request).provide(ProgramEnvLive)) // add dependencies locally
 
   val live = ZLayer.succeed[Service](HttpClientImpl())
-
-
 }
