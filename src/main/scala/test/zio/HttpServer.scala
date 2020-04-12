@@ -5,7 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.ActorMaterializer
 import test.zio.domain.model.AkkaDependencies
-import test.zio.domain.{HttpClient, ProgramEnvLive}
+import test.zio.domain.{HttpClient, ProgramEnv, ProgramEnvLive}
 import test.zio.routes.ApiRoutes
 import zio.internal.Platform
 import zio.{Task, ZIO, _}
@@ -30,7 +30,7 @@ object HttpServer extends App with ApiRoutes {
 
   val program: ZIO[ZEnv, Throwable, Future[Http.ServerBinding]] =
     (for {
-      systemT <- ZIO.access[ProgramEnvLive](_.dependencies.getSystem)
+      systemT <- ZIO.access[ProgramEnv](_.dependencies.getActorSystem)
       b <- systemT.flatMap(s=> bindTask(AkkaDependencies(s)))
      } yield b
     ).provide(ProgramEnvLive)

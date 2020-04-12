@@ -10,7 +10,7 @@ trait ProgramEnv {
 
 object ProgramEnv {
   trait Service {
-    def getSystem: Task[ActorSystem]
+    def getActorSystem: Task[ActorSystem]
   }
 }
 
@@ -19,7 +19,7 @@ trait ProgramEnvLive extends ProgramEnv {
   private val system = ActorSystem("ZIO"+System.currentTimeMillis())
 
   val dependencies = new Service {
-    override def getSystem: Task[ActorSystem] = Task(system)
+    override def getActorSystem: Task[ActorSystem] = Task(system)
   }
 }
 
