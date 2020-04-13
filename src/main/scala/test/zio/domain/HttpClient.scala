@@ -8,11 +8,15 @@ object HttpClient {
   type HttpClient = Has[Service]
 
   trait Service {
-    def executeRequest(request: HttpRequest): ZIO[ProgramEnv, Throwable, HttpResponse]
+    def executeRequest(request: HttpRequest): ZIO[ActorEnv, Throwable, HttpResponse]
+    def executeManyRequests(requests: List[HttpRequest]): ZIO[ActorEnv, Throwable, List[HttpResponse]]
   }
 
   def executeRequest(request: HttpRequest): ZIO[HttpClient, Throwable, HttpResponse] =
-    ZIO.accessM(_.get.executeRequest(request).provide(ProgramEnvLive)) // add dependencies locally
+    ZIO.accessM(_.get.executeRequest(request).provide(ActorEnvLive)) // add dependencies locally
+
+  def executeManyRequests(requests: List[HttpRequest]): ZIO[HttpClient, Throwable, List[HttpResponse]] =
+    ZIO.accessM(_.get.executeManyRequests(requests).provide(ActorEnvLive))
 
   val live = ZLayer.succeed[Service](HttpClientImpl())
 }
