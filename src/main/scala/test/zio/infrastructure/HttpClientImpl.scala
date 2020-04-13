@@ -8,7 +8,7 @@ import zio.duration._
 
 case class HttpClientImpl() extends HttpClient.Service {
 
-  private def httpTask(request: HttpRequest): ZIO[ProgramEnv, Throwable, HttpResponse] =
+  def executeRequest(request: HttpRequest): ZIO[ProgramEnv, Throwable, HttpResponse] =
       ZIO.accessM { env =>
         (for {
           system <- env.dependencies.getActorSystem
@@ -28,7 +28,10 @@ case class HttpClientImpl() extends HttpClient.Service {
         ).provideLayer(clock.Clock.live ++ (console.Console.live >>> Logging.live)) // add dependencies locally
   }
 
-  def executeRequest(request: HttpRequest): ZIO[ProgramEnv, Throwable, HttpResponse] =
-    httpTask(request)
+  def executeManyRequests(requests: List[HttpRequest]): ZIO[ProgramEnv, Throwable, List[HttpResponse]] =
+    ZIO.foreachParN(10)(requests) { r =>
+      ZIO.sleep(500.milliseconds).provideLayer(clock.Clock.live) *>
+        executeRequest(r)
+    }
 
 }
