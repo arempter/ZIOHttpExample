@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.ActorMaterializer
-import test.zio.domain.{HttpClient, ProgramEnv, ProgramEnvLive}
+import test.zio.domain.{HttpClient, ActorEnv, ActorEnvLive}
 import test.zio.routes.ApiRoutes
 import zio.internal.Platform
 import zio.{Task, ZIO, _}
@@ -13,7 +13,7 @@ import scala.concurrent.Future
 
 object HttpServer extends App with ApiRoutes {
 
-  private val runtime = Runtime(ProgramEnvLive, Platform.default)
+  private val runtime = Runtime(ActorEnvLive, Platform.default)
 
   private val bindTask: ActorSystem => Task[Future[Http.ServerBinding]] = { system =>
     implicit val sys: ActorSystem = system
@@ -34,12 +34,12 @@ object HttpServer extends App with ApiRoutes {
 
   val program: ZIO[ZEnv, Throwable, Future[Http.ServerBinding]] =
     (for {
-      systemT <- ZIO.access[ProgramEnv](_.dependencies.getActorSystem)
+      systemT <- ZIO.access[ActorEnv](_.dependencies.getActorSystem)
       b <- systemT.flatMap{ s=> bindTask(s) }
      } yield b
-    ).provide(ProgramEnvLive)
+    ).provide(ActorEnvLive)
 
-  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] =
+  override def run(args: List[String]): ZIO[ZEnv, Nothing, Int] =
     program.foldM(
       e => { console.putStrLn(s"Server failed to start ${e.getMessage}") *> IO.fail(throw e) },
       _ => { console.putStrLn("Server started...") *> IO.succeed(0) }
